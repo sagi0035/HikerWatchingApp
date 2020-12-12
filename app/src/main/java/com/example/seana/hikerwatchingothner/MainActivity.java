@@ -33,10 +33,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // so first we set up our locationmanager to pick up locations with the location listener
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                // so on a location change we will update the info
                 updateLocationInfo(location);
             }
 
@@ -56,13 +58,17 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        // so here we see if the permission has been granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         } else {
+            // if yes (permission granted) we wil get the gps
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,1,locationListener);
+            // and if a location has already been inputted prior we will set that as the location
             Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
             if (lastKnownLocation != null) {
+                // and we will set the function as such
                 updateLocationInfo(lastKnownLocation);
             }
 
@@ -76,11 +82,13 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
+        // if we were able to get permission we will request the info within startListening()
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startListening();
         }
     }
 
+    // and here we will request the user info
     public void startListening() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,1,locationListener);
@@ -91,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void updateLocationInfo(Location location) {
+        // so we will create a textview for each of the details that we want to provide to the user
         TextView textViewOne = findViewById(R.id.textView);
         TextView textViewTwo = findViewById(R.id.textView2);
         TextView textViewThree = findViewById(R.id.textView3);
@@ -98,18 +107,25 @@ public class MainActivity extends AppCompatActivity {
         TextView textViewFive = findViewById(R.id.textView5);
 
 
+        // herewe will pick up all the info as per the location and set the text to that
+        // (so this is to provide some important location-related info to any potential hikers)
         textViewOne.setText("Latitude" + Double.toString(location.getLatitude()));
         textViewTwo.setText("Longitude" + Double.toString(location.getLongitude()));
         textViewThree.setText("Accurracy" + Double.toString(location.getAccuracy()));
         textViewFour.setText("Altitude" + Double.toString(location.getAltitude()));
 
+        // we will first set the address to this just in case we are later on not going to get any address info
+        // in which case we will just specify to the user that no adress is found
         String address = "Could not find an address :(";
+        // so we will et geocoder to begin gettimg the info of the location
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
         try {
 
+            // we will get the adress info
             List<Address> listAddress = geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
 
+            // and if said info is available we will begin getting the specific details for the address
             if (listAddress != null && listAddress.size() > 0) {
                 address = "Address:\n";
                 if (listAddress.get(0).getThoroughfare()!= null) {
@@ -139,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        // and in the final text view we will (if available) palce the address
         textViewFive.setText(address);
 
 
